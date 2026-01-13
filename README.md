@@ -263,11 +263,20 @@ CMD ["opentelemetry-instrument", "python", "app.py"]
 EOF
 
 # Build and push to ECR
-aws ecr create-repository --repository-name python-sample-app --region us-east-1
-aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin <account-id>.dkr.ecr.us-east-1.amazonaws.com
+# First, get your AWS account ID
+export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+export AWS_REGION=us-east-1  # Change to your preferred region
+
+# Create ECR repository
+aws ecr create-repository --repository-name python-sample-app --region $AWS_REGION
+
+# Login to ECR
+aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
+
+# Build and push image
 docker build -t python-sample-app .
-docker tag python-sample-app:latest <account-id>.dkr.ecr.us-east-1.amazonaws.com/python-sample-app:latest
-docker push <account-id>.dkr.ecr.us-east-1.amazonaws.com/python-sample-app:latest
+docker tag python-sample-app:latest $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/python-sample-app:latest
+docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/python-sample-app:latest
 ```
 
 #### Step 4: Deploy ADOT Collector
@@ -322,6 +331,7 @@ kubectl apply -f adot-collector.yaml
 #### Step 5: Deploy Application
 
 ```bash
+# Use the AWS_ACCOUNT_ID and AWS_REGION variables from Step 3
 # Create deployment
 cat > deployment.yaml <<EOF
 apiVersion: apps/v1
@@ -341,7 +351,7 @@ spec:
     spec:
       containers:
       - name: app
-        image: <account-id>.dkr.ecr.us-east-1.amazonaws.com/python-sample-app:latest
+        image: $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/python-sample-app:latest
         ports:
         - containerPort: 8080
         env:
