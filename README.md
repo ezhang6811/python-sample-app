@@ -75,6 +75,14 @@ pip install -r requirements.txt
 python app.py
 ```
 
+For development with debug mode enabled:
+```bash
+export FLASK_DEBUG=1
+python app.py
+```
+
+**Note**: Debug mode should never be enabled in production as it poses security risks.
+
 The application will start on `http://localhost:8080`
 
 ### Running the Traffic Generator

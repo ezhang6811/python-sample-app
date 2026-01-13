@@ -1,4 +1,5 @@
 """Main Flask application entry point."""
+import os
 from flask import Flask
 from endpoints.users import users_bp
 from endpoints.products import products_bp
@@ -27,4 +28,8 @@ def health():
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8080, debug=True)
+    # Debug mode should only be enabled in development
+    # Set FLASK_DEBUG=1 environment variable to enable debug mode
+    debug_mode = os.environ.get('FLASK_DEBUG', '0') == '1'
+    app.run(host='0.0.0.0', port=8080, debug=debug_mode)
+
